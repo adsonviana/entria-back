@@ -2,10 +2,225 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
+Table Admin {
+  id String [pk]
+  user User [not null]
+}
+
+Table Client {
+  id String [pk]
+  orders Order [not null]
+  tickets Ticket [not null]
+  user User [not null]
+}
+
+Table Organizer {
+  id String [pk]
+  events Event [not null]
+  user User [not null]
+}
+
 Table User {
   id String [pk]
   name String [not null]
-  phone String
   email String [unique, not null]
+  phone String
   password String [not null]
+  type UserType [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  admin Admin
+  client Client
+  organizer Organizer
 }
+
+Table Event {
+  id String [pk]
+  organizerId String [not null]
+  title String [not null]
+  description String [not null]
+  bannerURL String [not null]
+  status EventStatus [not null, default: 'DRAFT']
+  locationName String [not null]
+  cep String [not null]
+  street String [not null]
+  number String [not null]
+  neighborhood String [not null]
+  city String [not null]
+  state States [not null]
+  capacity Int [not null]
+  artists Artist [not null]
+  startTime DateTime [not null]
+  endTime DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  orders Order [not null]
+  tickets Ticket [not null]
+  batches TicketBatch [not null]
+  organizer Organizer [not null]
+}
+
+Table Artist {
+  id String [pk]
+  name String [not null]
+  description String [not null]
+  bannerURL String [not null]
+  profilePictureURL String [not null]
+  upcomingEvents Event [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Order {
+  id String [pk]
+  status OrderStatus [not null, default: 'PENDING']
+  tickets Ticket [not null]
+  totalAmount Int [not null]
+  clientId String [not null]
+  eventId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  client Client [not null]
+  event Event [not null]
+}
+
+Table Ticket {
+  id String [pk]
+  status TicketStatus [not null, default: 'RESERVED']
+  code String [unique, not null]
+  batchId Int [not null]
+  type TicketType [not null]
+  price Int [not null]
+  clientId String [not null]
+  eventId String [not null]
+  orderId String [not null]
+  qrCodePDF String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  checkIns CheckIn [not null]
+  batch TicketBatch [not null]
+  client Client [not null]
+  event Event [not null]
+  order Order [not null]
+}
+
+Table TicketBatch {
+  id Int [pk, increment]
+  eventId String [not null]
+  batchType TicketBatchType [not null]
+  quantityTotal Int [not null]
+  quantitySold Int [not null]
+  price Int [not null]
+  salesStartAt DateTime [not null]
+  salesEndAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  tickets Ticket [not null]
+  event Event [not null]
+}
+
+Table CheckIn {
+  id String [pk]
+  ticketId String [not null]
+  checkedInAt DateTime [not null]
+  ticket Ticket [not null]
+}
+
+Enum UserType {
+  ADMIN
+  CLIENT
+  ORGANIZER
+}
+
+Enum States {
+  AC
+  AL
+  AP
+  AM
+  BA
+  CE
+  DF
+  ES
+  GO
+  MA
+  MT
+  MS
+  MG
+  PA
+  PB
+  PR
+  PE
+  PI
+  RJ
+  RN
+  RS
+  RO
+  RR
+  SC
+  SP
+  SE
+  TO
+}
+
+Enum TicketBatchType {
+  PROMOTIONAL
+  FIRST
+  SECOND
+  THIRD
+  FINAL
+}
+
+Enum TicketType {
+  PISTA
+  VIP
+  CAMAROTE
+  BACKSTAGE
+  OPEN_BAR
+}
+
+Enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+Enum TicketStatus {
+  AVAILABLE
+  RESERVED
+  PAID
+  CANCELLED
+  USED
+}
+
+Enum EventStatus {
+  DRAFT
+  PUBLISHED
+  SOLD_OUT
+  FINISHED
+  CANCELLED
+}
+
+Ref: Admin.id - User.id [delete: Cascade]
+
+Ref: Client.id - User.id [delete: Cascade]
+
+Ref: Organizer.id - User.id [delete: Cascade]
+
+Ref: Event.organizerId > Organizer.id
+
+Ref: Order.clientId > Client.id
+
+Ref: Order.eventId > Event.id
+
+Ref: Ticket.batchId > TicketBatch.id
+
+Ref: Ticket.clientId > Client.id
+
+Ref: Ticket.eventId > Event.id
+
+Ref: Ticket.orderId > Order.id
+
+Ref: TicketBatch.eventId > Event.id
+
+Ref: CheckIn.ticketId > Ticket.id

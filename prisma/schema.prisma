@@ -46,7 +46,7 @@ enum States {
   SP
   SE
   TO
-} 
+}
 
 enum TicketBatchType {
   PROMOTIONAL
@@ -88,130 +88,135 @@ enum EventStatus {
 }
 
 model Admin {
-  id                String @id
-  createdAt         DateTime
-  updatedAt         DateTime
-  
-  user              User   @relation(fields: [id], references: [id], onDelete: Cascade)
+  id        String   @id
+
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
 model Client {
-  id                String @id
-  orders            Order[]
-  createdAt         DateTime
-  updatedAt         DateTime
+  id        String   @id
+  orders    Order[]
+  tickets   Ticket[]
 
-  user User         @relation(fields: [id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
 model Organizer {
-  id                String @id
-  events            Event[]
-  createdAt         DateTime
-  updatedAt         DateTime
+  id        String   @id
+  events    Event[]
 
-  user User         @relation(fields: [id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
-
 model User {
-  id                String  @id @default(uuid())
-  name              String
-  email             String  @unique
-  password          String
-  type              UserType
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  phone    String?
+  password String
+  type     UserType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  admin             Admin?
-  client            Client?
-  organizer         Organizer?
+  admin     Admin?
+  client    Client?
+  organizer Organizer?
 }
 
 model Event {
-  id                String  @id @default(uuid())
-  organizerId       String
-  title             String
-  description       String
-  bannerURL         String
-  status            EventStatus @default(DRAFT)
-  locationName      String
-  cep               String
-  street            String
-  number            String
-  neighborhood      String
-  city              String
-  state             States
-  capacity          Int
-  artists           Artist[]
-  startTime         DateTime
-  endTime           DateTime
-  createdAt         DateTime
-  updatedAt         DateTime
+  id           String        @id @default(uuid())
+  organizerId  String
+  title        String
+  description  String
+  bannerURL    String
+  status       EventStatus   @default(DRAFT)
+  locationName String
+  cep          String
+  street       String
+  number       String
+  neighborhood String
+  city         String
+  state        States
+  capacity     Int
+  artists      Artist[]
+  startTime    DateTime
+  endTime      DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orders       Order[]
+  tickets      Ticket[]
+  batches      TicketBatch[]
 
-  organizer         Organizer @relation(fields:[organizerId], references: [id])
+  organizer Organizer @relation(fields: [organizerId], references: [id])
 }
 
 model Artist {
-  id                String @id @default(uuid())
+  id                String   @id @default(uuid())
   name              String
   description       String
   bannerURL         String
   profilePictureURL String
   upcomingEvents    Event[]
-  createdAt         DateTime
-  updatedAt         DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Order {
-  id                String @id @default(uuid())
-  status            OrderStatus @default(PENDING)
-  tickets           Ticket[]
-  totalAmount       Int
-  clientId          String
-  eventId           String
-  createdAt         DateTime
-  updatedAt         DateTime
+  id          String      @id @default(uuid())
+  status      OrderStatus @default(PENDING)
+  tickets     Ticket[]
+  totalAmount Int
+  clientId    String
+  eventId     String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  client            Client @relation(fields:[clientId], references: [id])
-  event             Event @relation(fields:[eventId], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
+  event  Event  @relation(fields: [eventId], references: [id])
 }
 
 model Ticket {
-  id                String @id @default(uuid())
-  status            TicketStatus @default(RESERVED)
-  code              String @unique
-  batch             TicketBatch
-  type              TicketType
-  price             Int
-  clientId          String
-  eventId           String
-  orderId           String
-  qrCodePDF         String
-  createdAt         DateTime
-  updatedAt         DateTime
+  id        String       @id @default(uuid())
+  status    TicketStatus @default(RESERVED)
+  code      String       @unique
+  batchId   Int
+  type      TicketType
+  price     Int
+  clientId  String
+  eventId   String
+  orderId   String
+  qrCodePDF String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  checkIns  CheckIn[]
 
-  client            Client @relation(fields: [clientId], references: [id])
-  event             Event @relation(fields: [eventId], references: [id])
-  order             Order @relation(fields: [orderId], references: [id])
+  batch TicketBatch @relation(fields: [batchId], references: [id])
+
+  client Client @relation(fields: [clientId], references: [id])
+  event  Event  @relation(fields: [eventId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id])
 }
 
 model TicketBatch {
-  id                Int @id @default(autoincrement())
-  eventId           String
-  batchType         TicketBatchType
-  quantityTotal     Int
-  quantitySold      Int
-  price             Int
-  salesStartAt      DateTime
-  salesEndAt        DateTime
-  createdAt         DateTime
+  id            Int             @id @default(autoincrement())
+  eventId       String
+  batchType     TicketBatchType
+  quantityTotal Int
+  quantitySold  Int
+  price         Int
+  salesStartAt  DateTime
+  salesEndAt    DateTime
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  tickets       Ticket[]
 
-  event             Event @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 }
 
 model CheckIn {
-  id                String @id @default(uui())
-  ticketId          String
-  checkedInAt       DateTime
+  id          String   @id @default(uuid())
+  ticketId    String
+  checkedInAt DateTime
 
-  ticket            Ticket @relation(fields: [ticketId], references: [id])
+  ticket Ticket @relation(fields: [ticketId], references: [id])
 }

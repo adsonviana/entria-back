@@ -1,4 +1,4 @@
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserType } from '@prisma/client';
 import prisma from '@database';
 
 class UserRepository {
@@ -6,14 +6,103 @@ class UserRepository {
     const user = await prisma.user.create({ data });
     return user;
   }
+  
+  async getAll(userFilter?: UserType): Promise<Prisma.UserGetPayload<{
+      include: {
+        client: {
+          select: {
+            orders: true,
+            tickets:true,
+          }
+        };
+        organizer: {
+          select: {
+            events:true,
+          }
+        }
+      };
+    }>[]
+    > {
 
-  async findByEmail(email: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const users = await prisma.user.findMany({
+      where: {
+        ...(userFilter && { type: userFilter })
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone:true,
+        password:true,
+        type: true,
+        createdAt:true,
+        updatedAt: true,
+        
+        client: {
+          select: {
+            orders:true,
+            tickets:true,
+          }
+        },
+        organizer:{
+          select: {
+            events:true,
+          }
+        }
+      }
+    });
+
+    return users;
+  }
+
+  async getById(id: string):   Promise<Prisma.UserGetPayload<{
+      include: {
+        client: {
+          select: {
+            orders: true,
+            tickets:true,
+          }
+        };
+        organizer: {
+          select: {
+            events:true,
+          }
+        }
+      };
+    }> | null
+    > {
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone:true,
+        password:true,
+        type: true,
+        createdAt:true,
+        updatedAt: true,
+        
+        client: {
+          select: {
+            orders:true,
+            tickets:true,
+          }
+        },
+        organizer:{
+          select: {
+            events:true,
+          }
+        }
+      }
+    });
+
     return user;
   }
 
-  async findById(id: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({ where: { id } });
+  async getByEmail(email: string): Promise<User | null> {
+    const user = await prisma.user.findUnique({ where: { email } });
     return user;
   }
 
@@ -27,10 +116,6 @@ class UserRepository {
     return user;
   }
 
-  async findAll(): Promise<User[]> {
-    const users = await prisma.user.findMany();
-    return users;
-  }
 }
 
 export default new UserRepository();

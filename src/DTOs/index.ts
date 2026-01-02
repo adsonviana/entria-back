@@ -1,3 +1,3 @@
-import { User, UpdateUser } from './User';
+import { User, UserUpdate, UserInput, UserUpdateInput } from './User';
 
-export { User, UpdateUser };
+export { User, UserUpdate, UserInput, UserUpdateInput };
